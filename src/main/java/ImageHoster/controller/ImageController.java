@@ -52,7 +52,7 @@ public class ImageController {
         model.addAttribute("image", image);
         model.addAttribute("tags", image.getTags());
         //Adding comment attribute
-//        model.addAttribute("comments",image.getComments());
+        model.addAttribute("comments",image.getComments());
         return "images/image";
     }
 
@@ -96,12 +96,24 @@ public class ImageController {
     //This string is then displayed by 'edit.html' file as previous tags of an image
     @RequestMapping(value = "/editImage")
     public String editImage(@RequestParam("imageId") Integer imageId, Model model,HttpSession session) {
+        //Added Validation for user id for owner to edit the image
+        User user = (User) session.getAttribute("loggeduser");
         Image image = imageService.getImage(imageId);
 
-        String tags = convertTagsToString(image.getTags());
-        model.addAttribute("image", image);
-        model.addAttribute("tags", tags);
-        return "images/edit";
+        if(image.getUser().getId() != user.getId()){
+            String error = "Only the owner of the image can edit the image";
+
+            model.addAttribute("image", image);
+            model.addAttribute("tags", image.getTags());
+            model.addAttribute("editError", error);
+            return "images/image";
+        }else
+        {
+            String tags = convertTagsToString(image.getTags());
+            model.addAttribute("image", image);
+            model.addAttribute("tags", tags);
+            return "images/edit";
+        }
     }
 
     //This controller method is called when the request pattern is of type 'images/edit' and also the incoming request is of PUT type
